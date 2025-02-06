@@ -5,6 +5,7 @@
 #include "GameState.h"
 #include "Target.h"
 #include "SFML/Audio.hpp"
+#include "KeySprite.h"
 #include <queue>
 
 class Level
@@ -69,6 +70,8 @@ private:
 	sf::Text m_gameOverText;
 	sf::Text m_scoreText;
 	sf::Font m_font;
+
+	std::vector<KeySprite> m_keySprites;
 
 	int m_score;
 };

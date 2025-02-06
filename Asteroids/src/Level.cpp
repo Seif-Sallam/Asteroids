@@ -84,6 +84,15 @@ Level::Level()
 	m_fTargetTime = 0.f;
 	m_bSpawnTargets = false;
 	m_bSpawnAsteroids = false;
+
+	{
+		m_keySprites.emplace_back(m_font, "W", "Thrust", sf::Vector2f(m_screenSize.x - 200.0f, m_screenSize.y - 200.0f), sf::Vector2f(32.0f, 32.0f));
+		m_keySprites.emplace_back(m_font, "A", "Rotate Left", sf::Vector2f(m_screenSize.x - 200.0f, m_screenSize.y - 160.0f), sf::Vector2f(32.0f, 32.0f));
+		m_keySprites.emplace_back(m_font, "D", "Rotate Right", sf::Vector2f(m_screenSize.x - 200.0f, m_screenSize.y - 120.0f), sf::Vector2f(32.0f, 32.0f));
+		m_keySprites.emplace_back(m_font, "Space", "Fire", sf::Vector2f(m_screenSize.x - 200.0f, m_screenSize.y - 80.0f), sf::Vector2f(64.0f, 32.0f));
+		m_keySprites.emplace_back(m_font, "ESC", "Close", sf::Vector2f(m_screenSize.x - 200.0f, m_screenSize.y - 40.0f), sf::Vector2f(40.0f, 32.0f));
+	}
+
 }
 
 void Level::Run()
@@ -343,6 +352,9 @@ void Level::Draw()
 	}
 
 	m_window->draw(m_scoreText);
+
+	for (auto &e : m_keySprites)
+		m_window->draw(e);
 
 	m_window->display();
 }
