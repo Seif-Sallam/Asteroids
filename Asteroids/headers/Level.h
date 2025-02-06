@@ -67,6 +67,9 @@ private:
 	int m_iSelectedBackground = 0;
 
 	sf::Text m_gameOverText;
+	sf::Text m_scoreText;
 	sf::Font m_font;
+
+	int m_score;
 };
 

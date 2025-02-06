@@ -59,12 +59,19 @@ Level::Level()
 		std::cout << "Font failed to load" << std::endl;
 	m_gameOverText.setFont(m_font);
 
+
 	m_gameOverText.setString("                Game Over\nPress 'ESC' to close the game");
 	m_gameOverText.setCharacterSize(100);
 	m_gameOverText.setFillColor(sf::Color::Red);
 	m_gameOverText.setPosition(m_screenSize.x / 2.0f - m_gameOverText.getGlobalBounds().width / 2.0f,
 							 m_screenSize.y / 2.0f - m_gameOverText.getGlobalBounds().height / 2.0f);
 
+	m_score = 0;
+	m_scoreText.setFont(m_font);
+	m_scoreText.setString("Score: 0");
+	m_scoreText.setCharacterSize(30);
+	m_scoreText.setFillColor(sf::Color::White);
+	m_scoreText.setPosition(m_screenSize.x - 200.0f, 0.0f);
 
 	m_fAsteroidsTime = 0.f;
 
@@ -213,12 +220,20 @@ void Level::Update()
 							Asteroid *asteroid = (Asteroid*)b;
 							if (asteroid->type == AsteroidSize::BIG)
 							{
+								m_score += 100;
 								m_entitiesVec.push_back(new Asteroid(sf::Vector2f(b->position),
 								AsteroidSize::SMALL,
 								static_cast<float>(rand() % 360),
 								&m_smallAsteroidTexture));
 								m_entitiesVec.push_back(new Asteroid(sf::Vector2f(b->position), AsteroidSize::SMALL, static_cast<float>(rand() % 360), &m_smallAsteroidTexture));
 							}
+							else
+							{
+								m_score += 50;
+							}
+
+							m_scoreText.setString("Score: " + std::to_string(m_score));
+
 							m_explosionsVec.push_back(new Explosion(sf::Vector2f(b->position), (int)ExplosionTypes::ASTEROID, &m_explosionTextureC));
 							int explosionType = rand() % 3;
 							switch (explosionType)
@@ -326,6 +341,8 @@ void Level::Draw()
 		m_lifeSprite.setPosition(5.0f + i * 40, 0.0f);
 		m_window->draw(m_lifeSprite);
 	}
+
+	m_window->draw(m_scoreText);
 
 	m_window->display();
 }
