@@ -4,8 +4,8 @@
 class Target : public Entity
 {
 public:
-	Target(const sf::Vector2f& position, sf::Texture* targetTexture, const float& lifeTime);
-	void Update(const float& deltaTime, const sf::Vector2i& screenSize) override;	
+	Target(const sf::Vector2f& position, sf::Texture* m_targetTexture, const float& lifeTime);
+	void Update(const float& deltaTime, const sf::Vector2i& screenSize) override;
 	~Target();
 protected:
 	void draw(sf::RenderTarget& target, sf::RenderStates state = sf::RenderStates::Default) const override;

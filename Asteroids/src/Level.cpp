@@ -1,13 +1,13 @@
 #include "Level.h"
 
-Level::Level(GameState *state)
+Level::Level()
 {
-	unsigned int sWidth = sf::VideoMode::getDesktopMode().width;
-	unsigned int sHeight = sf::VideoMode::getDesktopMode().height;
-	m_screenSize.x = sWidth;
-	m_screenSize.y = sHeight;
+	m_gameState = GameState::Playing;
+
+	m_screenSize.x = sf::VideoMode::getDesktopMode().width;
+	m_screenSize.y = sf::VideoMode::getDesktopMode().height;
 	srand(static_cast<unsigned int>(time(0)));
-	m_window = new sf::RenderWindow(sf::VideoMode(sWidth, sHeight), "Asteroids", sf::Style::Default);
+	m_window = new sf::RenderWindow(sf::VideoMode(m_screenSize.x, m_screenSize.y), "Asteroids", sf::Style::Fullscreen);
 	m_event = new sf::Event;
 	m_window->setFramerateLimit(60u);
 	for (int i = 0; i < 4; i++)
@@ -16,44 +16,55 @@ Level::Level(GameState *state)
 
 	m_background.setTexture(backgroundTextures[number]);
 
-	m_player = new Player(sf::Vector2f(sWidth / 2.0f, sHeight / 2.0f), m_entitiesVec);
+	m_player = new Player(sf::Vector2f(m_screenSize.x / 2.0f, m_screenSize.y / 2.0f), m_entitiesVec);
 
 	m_entitiesVec.reserve(50);
 	m_explosionsVec.reserve(50);
 	m_entitiesVec.push_back((Entity *)m_player);
-	m_gameState = state;
 
-	explosionTextureB.loadFromFile(RSC_DIR "textures/explosions/type_B.png");
-	explosionTextureB.setSmooth(true);
-	explosionTextureC.loadFromFile(RSC_DIR "textures/explosions/type_C.png");
-	explosionTextureC.setSmooth(true);
-	smallAsteroidTexture.loadFromFile(RSC_DIR "textures/rock_small.png");
-	smallAsteroidTexture.setSmooth(true);
-	bigAsteroidTexture.loadFromFile(RSC_DIR "textures/rock.png");
-	bigAsteroidTexture.setSmooth(true);
-	targetTexture.loadFromFile(RSC_DIR "textures/target.png");
-	targetTexture.setSmooth(true);
-	lifeTexture.loadFromFile(RSC_DIR "textures/spaceship.png", sf::IntRect(39, 0, 40, 40));
-	lifeTexture.setSmooth(true);
+	m_explosionTextureB.loadFromFile(RSC_DIR "textures/explosions/type_B.png");
+	m_explosionTextureB.setSmooth(true);
+	m_explosionTextureC.loadFromFile(RSC_DIR "textures/explosions/type_C.png");
+	m_explosionTextureC.setSmooth(true);
+	m_smallAsteroidTexture.loadFromFile(RSC_DIR "textures/rock_small.png");
+	m_smallAsteroidTexture.setSmooth(true);
+	m_bigAsteroidTexture.loadFromFile(RSC_DIR "textures/rock.png");
+	m_bigAsteroidTexture.setSmooth(true);
+	m_targetTexture.loadFromFile(RSC_DIR "textures/target.png");
+	m_targetTexture.setSmooth(true);
+	m_lifeTexture.loadFromFile(RSC_DIR "textures/spaceship.png", sf::IntRect(39, 0, 40, 40));
+	m_lifeTexture.setSmooth(true);
 
 	m_explosionsSoundBuf0.loadFromFile(RSC_DIR "SoundEffects/explosion0.wav");
 	m_explosionsSoundBuf1.loadFromFile(RSC_DIR "SoundEffects/explosion1.wav");
 	m_explosionsSoundBuf2.loadFromFile(RSC_DIR "SoundEffects/explosion2.wav");
 
-	lives = 3;
-	lifeSprites = new sf::Sprite[lives];
+	m_lives = 3;
+	m_lifeSprite.setTexture(m_lifeTexture);
 
-	for (int i = 0; i < lives; i++)
-	{
-		lifeSprites[i].setTexture(lifeTexture);
-		lifeSprites[i].setPosition(5.0f + i * 40, 0.0f);
-	}
 
 	for (int i = 0; i < 15; i++)
 	{
 		int type = rand() % 2;
-		m_entitiesVec.push_back(new Asteroid(sf::Vector2f(static_cast<float>(rand() % m_screenSize.x), static_cast<float>(rand() % m_screenSize.y)), type, static_cast<float>(rand() % 360), (type == AsteroidSize::SMALL) ? &smallAsteroidTexture : &bigAsteroidTexture));
+		m_entitiesVec.push_back(new Asteroid(sf::Vector2f(static_cast<float>(rand() % m_screenSize.x), static_cast<float>(rand() % m_screenSize.y)),
+		 			type,
+					static_cast<float>(rand() % 360),
+					(type == AsteroidSize::SMALL) ? &m_smallAsteroidTexture : &m_bigAsteroidTexture));
 	}
+
+
+	if (m_font.loadFromFile(RSC_DIR "fonts/KnowingHow.ttf"))
+		std::cout << "Font loaded successfully" << std::endl;
+	else
+		std::cout << "Font failed to load" << std::endl;
+	m_gameOverText.setFont(m_font);
+
+	m_gameOverText.setString("                Game Over\nPress 'ESC' to close the game");
+	m_gameOverText.setCharacterSize(100);
+	m_gameOverText.setFillColor(sf::Color::Red);
+	m_gameOverText.setPosition(m_screenSize.x / 2.0f - m_gameOverText.getGlobalBounds().width / 2.0f,
+							 m_screenSize.y / 2.0f - m_gameOverText.getGlobalBounds().height / 2.0f);
+
 
 	m_fAsteroidsTime = 0.f;
 
@@ -70,7 +81,7 @@ Level::Level(GameState *state)
 
 void Level::Run()
 {
-	while (*m_gameState != GameState::Exit)
+	while (m_gameState != GameState::Exit)
 	{
 		EventHandler();
 		Update();
@@ -84,6 +95,10 @@ Level::~Level()
 		delete e;
 	for (auto &e : m_entitiesVec)
 		delete e;
+
+	delete m_window;
+	delete m_event;
+	delete m_player;
 }
 
 void Level::EventHandler()
@@ -91,15 +106,18 @@ void Level::EventHandler()
 	while (m_window->pollEvent(*m_event))
 	{
 		if (m_event->type == sf::Event::Closed || m_event->type == sf::Event::KeyPressed && m_event->key.code == sf::Keyboard::Escape)
-			*m_gameState = GameState::Exit;
+			m_gameState = GameState::Exit;
 		if (m_event->type == sf::Event::KeyPressed && m_event->key.code == sf::Keyboard::K)
-			m_entitiesVec.push_back(new Asteroid(sf::Vector2f(static_cast<float>(rand() % m_screenSize.x), static_cast<float>(rand() % m_screenSize.y)), AsteroidSize::BIG, static_cast<float>(rand() % 360), &bigAsteroidTexture));
+		{
+			m_entitiesVec.push_back(new Asteroid(sf::Vector2f(static_cast<float>(rand() % m_screenSize.x), static_cast<float>(rand() % m_screenSize.y)),
+			AsteroidSize::BIG,
+			static_cast<float>(rand() % 360),
+			&m_bigAsteroidTexture));
+		}
 		if (m_event->type == sf::Event::KeyPressed && m_event->key.code == sf::Keyboard::B)
 		{
 			if (m_iSelectedBackground == 3)
-			{
 				m_iSelectedBackground = 0;
-			}
 			m_background.setTexture(backgroundTextures[m_iSelectedBackground]);
 			m_iSelectedBackground++;
 		}
@@ -108,8 +126,7 @@ void Level::EventHandler()
 
 void Level::Update()
 {
-	float deltaTime = clock.restart().asSeconds();
-	m_window->setTitle("Asteroids,  FPS: " + std::to_string(1.0f / deltaTime));
+	float deltaTime = m_clock.restart().asSeconds();
 	m_fAsteroidsTime += deltaTime;
 	m_fTargetTime += deltaTime;
 
@@ -145,7 +162,7 @@ void Level::Update()
 		m_bSpawnAsteroids = true;
 	}
 
-	if (m_bSpawnTargets)
+	if (m_bSpawnTargets && m_lives > 0)
 	{
 		m_bSpawnTargets = false;
 		for (auto &a : m_entitiesVec)
@@ -158,94 +175,100 @@ void Level::Update()
 			int type = rand() % 2;
 			float angle = static_cast<float>(rand() % 360);
 
-			m_entitiesVec.push_back(new Target(pos, &targetTexture, 5.f));
+			m_entitiesVec.push_back(new Target(pos, &m_targetTexture, 5.f));
 			newAsteroids[i].pos = pos;
 			newAsteroids[i].type = type;
 			newAsteroids[i].angle = angle;
 		}
 	}
 
-	if (m_bSpawnAsteroids)
+	if (m_bSpawnAsteroids && m_lives > 0)
 	{
 		m_bSpawnAsteroids = false;
 		for (int i = 0; i < 10; i++)
 		{
 			int type = newAsteroids[i].type;
-			m_entitiesVec.push_back(new Asteroid(newAsteroids[i].pos, newAsteroids[i].type, newAsteroids[i].angle, (type == AsteroidSize::BIG) ? &bigAsteroidTexture : &smallAsteroidTexture));
+			m_entitiesVec.push_back(new Asteroid(newAsteroids[i].pos, newAsteroids[i].type, newAsteroids[i].angle, (type == AsteroidSize::BIG) ? &m_bigAsteroidTexture : &m_smallAsteroidTexture));
 		}
 	}
 
 	// Checking Collision
-	for (int i = 0; i < m_entitiesVec.size(); i++)
+	if (m_lives > 0)
 	{
-		auto a = m_entitiesVec[i];
-		for (int j = 0; j < m_entitiesVec.size(); j++)
+		for (int i = 0; i < m_entitiesVec.size(); i++)
 		{
-			auto b = m_entitiesVec[j];
-			if (!(typeid(*a) == typeid(Bullet) && typeid(*b) == typeid(Player)) && typeid(*b) != typeid(*a))
+			auto a = m_entitiesVec[i];
+			for (int j = 0; j < m_entitiesVec.size(); j++)
 			{
-				if (a->alive && b->alive && Colliding(a, b))
+				auto b = m_entitiesVec[j];
+				if (!(typeid(*a) == typeid(Bullet) && typeid(*b) == typeid(Player)) && typeid(*b) != typeid(*a))
 				{
-					if (typeid(*a) == typeid(Bullet) && typeid(*b) == typeid(Asteroid))
+					if (a->alive && b->alive && Colliding(a, b))
 					{
-						// Send it to our garbage collector in the end of the update
-						a->alive = false;
-						b->alive = false;
-						Asteroid *asteroid = (Asteroid*)b;
-						if (asteroid->type == AsteroidSize::BIG)
+						if (typeid(*a) == typeid(Bullet) && typeid(*b) == typeid(Asteroid))
 						{
-							m_entitiesVec.push_back(new Asteroid(sf::Vector2f(b->position),
-							AsteroidSize::SMALL,
-							 static_cast<float>(rand() % 360),
-							 &smallAsteroidTexture));
-							m_entitiesVec.push_back(new Asteroid(sf::Vector2f(b->position), AsteroidSize::SMALL, static_cast<float>(rand() % 360), &smallAsteroidTexture));
+							// Send it to our garbage collector in the end of the update
+							a->alive = false;
+							b->alive = false;
+							Asteroid *asteroid = (Asteroid*)b;
+							if (asteroid->type == AsteroidSize::BIG)
+							{
+								m_entitiesVec.push_back(new Asteroid(sf::Vector2f(b->position),
+								AsteroidSize::SMALL,
+								static_cast<float>(rand() % 360),
+								&m_smallAsteroidTexture));
+								m_entitiesVec.push_back(new Asteroid(sf::Vector2f(b->position), AsteroidSize::SMALL, static_cast<float>(rand() % 360), &m_smallAsteroidTexture));
+							}
+							m_explosionsVec.push_back(new Explosion(sf::Vector2f(b->position), (int)ExplosionTypes::ASTEROID, &m_explosionTextureC));
+							int explosionType = rand() % 3;
+							switch (explosionType)
+							{
+							case 0:
+								m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf0));
+								break;
+							case 1:
+								m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf1));
+								break;
+							case 2:
+								m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf2));
+								break;
+							}
+							m_explosionSoundsQ.back()->play();
 						}
-						m_explosionsVec.push_back(new Explosion(sf::Vector2f(b->position), (int)ExplosionTypes::ASTEROID, &explosionTextureC));
-						int explosionType = rand() % 3;
-						switch (explosionType)
+						else if (typeid(*a) == typeid(Player) && typeid(*b) == typeid(Asteroid))
 						{
-						case 0:
-							m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf0));
-							break;
-						case 1:
-							m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf1));
-							break;
-						case 2:
-							m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf2));
-							break;
-						}
-						m_explosionSoundsQ.back()->play();
-					}
-					else if (typeid(*a) == typeid(Player) && typeid(*b) == typeid(Asteroid))
-					{
-						a->alive = false;
-						b->alive = false;
+							a->alive = false;
+							b->alive = false;
 
-						Asteroid *asteroid = (Asteroid *)b;
-						if (asteroid->type == AsteroidSize::BIG)
-						{
-							m_entitiesVec.push_back(new Asteroid(sf::Vector2f(a->position), AsteroidSize::SMALL, static_cast<float>(rand() % 360), &smallAsteroidTexture));
-							m_entitiesVec.push_back(new Asteroid(sf::Vector2f(a->position), AsteroidSize::SMALL, static_cast<float>(rand() % 360), &smallAsteroidTexture));
+							Asteroid *asteroid = (Asteroid *)b;
+							if (asteroid->type == AsteroidSize::BIG)
+							{
+								m_entitiesVec.push_back(new Asteroid(sf::Vector2f(a->position), AsteroidSize::SMALL, static_cast<float>(rand() % 360), &m_smallAsteroidTexture));
+								m_entitiesVec.push_back(new Asteroid(sf::Vector2f(a->position), AsteroidSize::SMALL, static_cast<float>(rand() % 360), &m_smallAsteroidTexture));
+							}
+							m_explosionsVec.push_back(new Explosion(sf::Vector2f(b->position), (int)ExplosionTypes::SHIP, &m_explosionTextureB));
+							m_player->CleanBullets();
+							m_lives--;
+
+							m_player = new Player(sf::Vector2f(m_screenSize.x / 2.0f, m_screenSize.y / 2.0f), m_entitiesVec);
+							if (m_lives <= 0)
+								m_player->makeAShadow();
+							m_entitiesVec.push_back(m_player);
+							int explosionType = rand() % 3;
+							switch (explosionType)
+							{
+							case 0:
+								m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf0));
+								break;
+							case 1:
+								m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf1));
+								break;
+							case 2:
+								m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf2));
+								break;
+							}
+							m_explosionSoundsQ.back()->play();
 						}
-						m_explosionsVec.push_back(new Explosion(sf::Vector2f(b->position), (int)ExplosionTypes::SHIP, &explosionTextureB));
-						m_player->CleanBullets();
-						lives--;
-						m_player = new Player(sf::Vector2f(m_screenSize.x / 2.0f, m_screenSize.y / 2.0f), m_entitiesVec);
-						m_entitiesVec.push_back(m_player);
-						int explosionType = rand() % 3;
-						switch (explosionType)
-						{
-						case 0:
-							m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf0));
-							break;
-						case 1:
-							m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf1));
-							break;
-						case 2:
-							m_explosionSoundsQ.push(new sf::Sound(m_explosionsSoundBuf2));
-							break;
-						}
-						m_explosionSoundsQ.back()->play();
 					}
 				}
 			}
@@ -267,6 +290,7 @@ void Level::Update()
 			m_entitiesVec.erase(m_entitiesVec.begin() + i);
 		}
 	}
+
 	for (int i = 0; i < m_explosionsVec.size(); i++)
 	{
 		m_explosionsVec[i]->Update(deltaTime);
@@ -294,10 +318,13 @@ void Level::Draw()
 	for (auto &e : m_explosionsVec)
 		m_window->draw(*e);
 
-	if (lives > 0)
+	if (m_lives <= 0)
+		m_window->draw(m_gameOverText);
+
+	for (int i = 0; i < m_lives; i++)
 	{
-		for (int i = 0; i < lives; i++)
-			m_window->draw(lifeSprites[i]);
+		m_lifeSprite.setPosition(5.0f + i * 40, 0.0f);
+		m_window->draw(m_lifeSprite);
 	}
 
 	m_window->display();

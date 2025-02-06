@@ -26,6 +26,7 @@ Player::Player(const sf::Vector2f &position, std::vector<Entity *> &entitiesVect
 	missileNextShot = 0.4f;
 	missileFireRate = 0.4f;
 	radius = 15.0f;
+	m_shadow = false;
 
 	m_bulletSoundBuf.loadFromFile(RSC_DIR "SoundEffects/laserShot.wav");
 }
@@ -131,7 +132,7 @@ void Player::AddMissile()
 void Player::AddBullet()
 {
 	sf::Vector2f pos = sf::Vector2f(position.x + m_direction.x * 2.0f, position.y + m_direction.y * 2.0f);
-	m_entitiesVec.push_back(new Bullet(pos, m_direction, &m_bulletTexture));
+	m_entitiesVec.push_back(new Bullet(pos, m_direction, &m_bulletTexture, m_shadow));
 	activeBullets++;
 
 	m_sounds.push_back(new sf::Sound(m_bulletSoundBuf));
@@ -159,6 +160,8 @@ Player::~Player()
 
 void Player::draw(sf::RenderTarget &target, sf::RenderStates state) const
 {
+	if (m_shadow)
+		m_body.setColor(sf::Color(0, 0, 0, 125));
 	target.draw(m_body, state);
 }
 

@@ -1,9 +1,9 @@
 #include "Target.h"
 
-Target::Target(const sf::Vector2f& position, sf::Texture* targetTexture, const float& lifeTime)
+Target::Target(const sf::Vector2f& position, sf::Texture* m_targetTexture, const float& lifeTime)
 {
 	this->position = position;
-	m_body.setTexture(*targetTexture);
+	m_body.setTexture(*m_targetTexture);
 	m_body.setOrigin(32.0f, 32.0f);
 	m_body.setPosition(position);
 	m_fCurrentScale = 1.0f;
@@ -41,7 +41,7 @@ void Target::Update(const float& deltaTime, const sf::Vector2i& screenSize)
 		}
 	}
 	else
-	{ 
+	{
 		alive = false;
 	}
 }

@@ -2,5 +2,5 @@
 enum class GameState {
 	Exit,
 	MainMenu,
-	Game
+	Playing
 };

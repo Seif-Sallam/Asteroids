@@ -1,7 +1,8 @@
 #include "Bullet.h"
 
-Bullet::Bullet(sf::Vector2f position, sf::Vector2f direction, sf::Texture* bulletTexture)
+Bullet::Bullet(sf::Vector2f position, sf::Vector2f direction, sf::Texture* bulletTexture, bool shadow)
 {
+	m_shadow = shadow;
 	m_body.setTexture(*bulletTexture);
 	m_body.setPosition(position);
 	m_body.setOrigin(16.0f, 32.0f);
@@ -38,6 +39,8 @@ Bullet::~Bullet()
 void Bullet::draw(sf::RenderTarget& target, sf::RenderStates state) const
 {
 	if (alive) {
+		if (m_shadow)
+			m_body.setColor(sf::Color(0, 0, 0, 125));
 		target.draw(m_body, state);
 	}
 }

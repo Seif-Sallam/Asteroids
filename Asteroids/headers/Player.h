@@ -24,6 +24,8 @@ public:
 	int activeBullets = 0;
 	int activeMissiles = 0;
 
+	void makeAShadow() { m_shadow = true; }
+
 	~Player();
 protected:
 	void draw(sf::RenderTarget& target, sf::RenderStates state = sf::RenderStates::Default) const override;
@@ -33,7 +35,7 @@ private:
 
 	sf::Texture m_shipTexture;
 	sf::Texture m_bulletTexture;
-	sf::Sprite m_body;
+	mutable sf::Sprite m_body;
 	float m_fAngle;
 	sf::Vector2f m_velocity;
 	sf::Vector2f m_direction;
@@ -52,10 +54,11 @@ private:
 
 	float missileNextShot;
 	float missileFireRate;
-	
+
 	sf::SoundBuffer m_bulletSoundBuf;
 	std::vector<sf::Sound*> m_sounds;
 	sf::Sound m_bulletSound;
 
+	bool m_shadow = false;
 };
 

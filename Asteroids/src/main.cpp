@@ -2,8 +2,7 @@
 
 int main()
 {
-	GameState g = GameState::Game;
-	Level game(&g);
+	Level game;
 	game.Run();
 	return 0;
 
