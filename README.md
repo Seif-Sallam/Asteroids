@@ -2,7 +2,7 @@
 
 This is a game created to mimic the classic arcade Asteroids. The graphics however are created with sprites instead of vector graphics as it was in the original game.
 
-## Game Controlls
+## Game Controls
 
 * W OR Arrow Up to thrust.
 * A OR Arrow Left to rotate Left.
@@ -11,14 +11,10 @@ This is a game created to mimic the classic arcade Asteroids. The graphics howev
 
 ## Compiling the project
 
-This project was compiled and maintained on Linux Ubuntu 21.0. The project has a Makefile that compiles all the files needed for this project.
-
-The required dependency is mainly [SFML](https://www.sfml-dev.org/).
-
-Install SFML then run make at the root folder of the project. This will generate an executable file in the build folder _Build_.
+This project was made on Windows and has a CMakeLists file to be able to compile it and its dependencies.
 
 ## ScreenShot
-<img src=./Images/Screenshot1.png>
-
-
 <img src=./Images/Screenshot2.png>
+
+
+<img src=./Images/Screenshot1.png>
