@@ -15,6 +15,7 @@ target_include_directories(
     PRIVATE
     ./headers/
 )
+find_library(OPENAL_LIBRARY NAMES OpenAL32)
 
 target_link_libraries(Asteroids
     PRIVATE
@@ -23,6 +24,9 @@ target_link_libraries(Asteroids
     sfml-system
     sfml-audio
 )
+
+# Copy OpenAL library to the output directory
+file(COPY ${OPENAL_LIBRARY} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(Asteroids
@@ -35,6 +39,7 @@ else()
         RSC_DIR="./rsc/"
     )
 
+    set_target_properties(Asteroids PROPERTIES WIN32_EXECUTABLE TRUE)
     set_target_properties(Asteroids PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup")
     if (NOT EXISTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rsc/)
         file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rsc/)

@@ -11,9 +11,7 @@ Level::Level(GameState *state)
 	m_event = new sf::Event;
 	m_window->setFramerateLimit(60u);
 	for (int i = 0; i < 4; i++)
-	{
 		backgroundTextures[i].loadFromFile(RSC_DIR "textures/background" + std::to_string(i) + ".jpg");
-	}
 	int number = rand() % 4;
 
 	m_background.setTexture(backgroundTextures[number]);
@@ -177,7 +175,7 @@ void Level::Update()
 		}
 	}
 
-	// Chceking Collision
+	// Checking Collision
 	for (int i = 0; i < m_entitiesVec.size(); i++)
 	{
 		auto a = m_entitiesVec[i];
